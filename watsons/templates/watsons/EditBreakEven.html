@@ -1,0 +1,76 @@
+{% extends 'watsons/Base.html' %}
+{% load static from staticfiles %}
+{% block content %}
+
+
+
+<h2>BreakEven</h2>
+<br>
+<form method="POST" style="margin = auto;">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="提交">
+</form>
+
+<br>
+
+<div id="container1"></div>
+
+  <script src="https://code.highcharts.com/highcharts.src.js"></script>
+  <script>
+    Highcharts.chart('container1', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Breakeven Index'
+        },
+        xAxis: {
+            categories: [
+                {% for entry in new_group_list %}'{{ entry.RFM_num }}'{% if not forloop.last %}, {% endif %}{% endfor %}
+            ]
+        },
+        series: [{
+            name: 'Breakeven Index',
+            data: [
+                {% for entry in new_group_list %}{{ entry.BreakEven_Index }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            ],
+            color: 'green'
+        }]
+    });
+
+  </script>
+
+<br>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+           <th>RFM 代碼</th>
+           <th>損益平衡指數</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        {% for i in new_group_list %}
+
+          <tr>
+             <td>{{ i.RFM_num }}</td>
+             <td>{{ i.BreakEven_Index }}</td>
+             
+
+             
+            
+          </tr>
+          {% endfor %}
+    
+        
+      </tbody>
+    </table>
+
+
+</div>
+
+
+{% endblock %}

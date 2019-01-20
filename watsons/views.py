@@ -74,27 +74,69 @@ def create(request):
 
 #Show Transaction Start
 
+@login_required
 def showTransaction(request):
     allList = Transaction.objects.all()
-    yList = Transaction.objects.filter(time__year=2018)
-    m1 = Transaction.objects.filter(time__year=2018, time__month=1)
-    m2 = Transaction.objects.filter(time__year=2018, time__month=2)
-    m3 = Transaction.objects.filter(time__year=2018, time__month=3)
-    m4 = Transaction.objects.filter(time__year=2018, time__month=4)
-    m5 = Transaction.objects.filter(time__year=2018, time__month=5)
-    m6 = Transaction.objects.filter(time__year=2018, time__month=6)
-    m7 = Transaction.objects.filter(time__year=2018, time__month=7)
-    m8 = Transaction.objects.filter(time__year=2018, time__month=8)
-    m9 = Transaction.objects.filter(time__year=2018, time__month=9)
-    m10 = Transaction.objects.filter(time__year=2018, time__month=10)
-    m11 = Transaction.objects.filter(time__year=2018, time__month=11)
-    m12 = Transaction.objects.filter(time__year=2018, time__month=12)
-
-    return render(request, 'watsons/ShowTransaction.html', {'allList': allList})
+    yList = Transaction.objects.filter(time__year=2018).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m1 = Transaction.objects.filter(time__year=2018, time__month=1).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m2 = Transaction.objects.filter(time__year=2018, time__month=2).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m3 = Transaction.objects.filter(time__year=2018, time__month=3).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m4 = Transaction.objects.filter(time__year=2018, time__month=4).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m5 = Transaction.objects.filter(time__year=2018, time__month=5).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m6 = Transaction.objects.filter(time__year=2018, time__month=6).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m7 = Transaction.objects.filter(time__year=2018, time__month=7).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m8 = Transaction.objects.filter(time__year=2018, time__month=8).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m9 = Transaction.objects.filter(time__year=2018, time__month=9).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m10 = Transaction.objects.filter(time__year=2018, time__month=10).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m11 = Transaction.objects.filter(time__year=2018, time__month=11).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    m12 = Transaction.objects.filter(time__year=2018, time__month=12).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
+    context = {'allList': allList, 'yList':yList, 'mList': {1: m1, 2: m2, 3: m3, 4: m4, 5: m5, 6: m6, 7: m7, 8: m8, 9: m9, 10: m10, 11: m11, 12: m12}}
+    return render(request, 'watsons/ShowTransaction.html', context)
 
 #Show Transaction End
 
+@login_required
+def uploadTransaction(request):
+    f = UploadFileForm()
+    return render(request, 'watsons/UploadFile.html', {'f': f})
 
+
+def upload_csv(request):
+    data = {}
+    if request.method == 'GET':
+        return render(request, "watsons/UploadFile.html", data)
+    else:
+        csv_file = request.FILES["csv_file"]
+        file_data = csv_file.read().decode("utf-8")		
+
+        lines = file_data.split("\n")
+
+        for line in lines[1:]:
+            each = line.split(',')
+            try:
+                if csv_file.name.startswith('P'):
+                    c, created = Product.objects.get_or_create(product_name=each[0], 
+                                                                category=each[1],
+                                                                price=int(each[2]),
+                                                                quantity=int(each[3]))
+                elif csv_file.name.startswith('C'):
+                    c, created = Customer.objects.get_or_create(customer_name=each[0],
+                                                                gender=each[1])
+                else:
+                    d = random.randint(1,364)
+                    thisTime = NOW + datetime.timedelta(days=d)
+                    c, created = Transaction.objects.get_or_create(customer_id=each[0],
+                                                                product_id=each[1],
+                                                                time=thisTime,
+                                                                amount=each[2])
+
+                if not created:
+                    c.save()
+            except:
+                pass
+
+
+    return render(request, 'watsons:showTransaction')
 
 
 #RFM Model start

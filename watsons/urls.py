@@ -13,6 +13,7 @@ urlpatterns = [
     path('product_index', views.product_index, name='Product Index'),  
     path('listall', views.listall, name='List all'),
     path('create', views.create, name='create'),
+    path('upload/csv/', views.upload_csv, name='upload_csv'),
     path('show_transaction', views.showTransaction, name='showTransaction'),
     path('home/servive/', views.servive, name='servive'),        #存活率
     path('home/total_rate/', views.total_rate, name='total_rate'),  #個別錢包佔有率

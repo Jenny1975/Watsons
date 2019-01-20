@@ -20,6 +20,7 @@
     <!-- Custom styles for this template -->
     
     <link href="{% static 'navbar-fixed-top.css' %}" rel="stylesheet">
+    <link href="{% static 'dashboard.css' %}" rel="stylesheet">
     {% block theme %}{% endblock %}
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
@@ -58,8 +59,33 @@
                     </div>
                   </nav>
                   
-                  <div style="margin-top:60px">{% block content %}{% endblock %}</div>
+                  
     </div>
+
+    <div class="container-fluid">
+        <div class="row">
+          <div class="col-sm-3 col-md-2 sidebar">
+            <ul class="nav nav-sidebar">
+              <li class="active"><a href="{% url 'watsons:index' %}">HOME<span class="sr-only">(current)</span></a></li>
+            </ul>
+            <ul class="nav nav-sidebar">
+              <li><a href="{% url 'watsons:List all' %}">產品庫存分析</a></li>
+              <li><a href="{% url 'watsons:upload_csv' %}">匯入資料</a></li>
+              <li><a href="{% url 'watsons:showTransaction' %}">訂單查詢</a></li>
+            </ul>
+            <ul class="nav nav-sidebar">  顧客活動指標
+              <li><a href="{% url 'watsons:servive' %}">顧客存活率</a></li>
+              <li><a href="{% url 'watsons:total_rate' %}">個別錢包佔有率</a></li>
+              <li><a href="{% url 'watsons:rate' %}">錢包大小</a></li>
+            </ul>
+            <ul class="nav nav-sidebar">  顧客活動指標
+              <li><a href="{% url 'watsons:RFM' %}">RFM報表</a></li>
+              <li><a href="{% url 'watsons:BreakEven' %}">損益平衡值</a></li>
+            </ul>
+          </div>
+          <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div style="margin-top:60px">{% block content %}{% endblock %}</div>
+          </div>
     
   </body>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>

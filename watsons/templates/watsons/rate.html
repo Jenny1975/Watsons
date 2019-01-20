@@ -1,29 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+{% extends 'watsons/Base.html' %}
+{% load static from staticfiles %}
+{% block content %}
+
     <h2>顧客錢包大小</h2>
-</head>
-<body>
-<table border="1" cellpadding="0" cellspacing="0">
-        <th>Name</th>
-        <th>Cosmetic</th>
-        <th>Snacks</th>
-        <th>Care Product</th>
+    <br>
 
-{% for customer in poc %}
-        <tr>
-            <td>{{customer.customer}}  </td>
-            <td>{{customer.total_Cosmetic}}  </td>
-            <td>{{customer.total_Snacks}}  </td>
-            <td>{{customer.total_Care}}  </td>
-        </tr>
-        {% endfor %}
-    <th>Total</th>
-    <th>{{cosmetic}}</th>
-    <th>{{snacks}}</th>
-    <th>{{care}}</th>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+                <th>Name</th>
+                <th>Cosmetic</th>
+                <th>Snacks</th>
+                <th>Care Product</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+          
+            {% for customer in poc %}
+            <tr>
+                <td>{{customer.customer}}  </td>
+                <td>{{customer.total_Cosmetic}}  </td>
+                <td>{{customer.total_Snacks}}  </td>
+                <td>{{customer.total_Care}}  </td>
+            </tr>
+            {% endfor %}
+            <th>Total</th>
+            <th>{{cosmetic}}</th>
+            <th>{{snacks}}</th>
+            <th>{{care}}</th>
+        
+            
+          </tbody>
+        </table>
+    
+    
+    </div>
 
-</body>
-</html>
+
+
+{% endblock %}
