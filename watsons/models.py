@@ -25,7 +25,10 @@ class Customer(models.Model):
         return self.customer_name
 
         
-
+class Promotion(models.Model):
+    start_time = models.DateField(blank = True, null = True)
+    end_time = models.DateField(blank = True, null = True)
+    amount = models.IntegerField(blank = True, null = True)
 
 class Product(models.Model):
     COSMETIC = 'CO'

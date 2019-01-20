@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Customer, Transaction, Bonus, Product, Location, Pocket_other, Staff, Servive
+from .models import Customer, Transaction, Bonus, Product, Location, Pocket_other, Staff, Servive, Promotion
 
 # Register your models here.
 admin.site.register(Customer)
@@ -9,6 +9,10 @@ admin.site.register(Location)
 admin.site.register(Pocket_other)
 admin.site.register(Servive)
 admin.site.register(Staff)
+admin.site.register(Promotion)
+
+
+
 class productAdmin(admin.ModelAdmin):
     list_display=('product_id','product_name','category','price','brand','quantity','quantity_safe')
     list_filter=('product_name','category')

@@ -6,25 +6,30 @@ from django.template import loader
 from django.urls import reverse
 from django.db import models
 from decimal import Decimal
-from .models import Transaction, Product, Customer, Pocket_other, Servive
-from django.db.models import Avg, Sum
+from .models import Transaction, Product, Customer, Pocket_other, Servive, Promotion
+from .forms import PromotionForm, UploadFileForm
+from django.db.models import Avg, Sum, Count
 import matplotlib.pyplot as plt
 from django.http import JsonResponse
 import json
 from django.views import generic
+from django.conf import settings
 
 import csv
 import random
 import datetime
+import time
+import os
 
 
 NOW =  datetime.datetime.now()
 
+@login_required
 def index(request):
     latest_transaction_list = Transaction.objects.order_by('-time')[:5]
     context = {'latest_transaction_list': latest_transaction_list}
     return render(request, 'watsons/Base.html', context)
-
+             
 def create(request):
     with open('Pfile.csv') as pf:
         first = True
@@ -73,7 +78,6 @@ def create(request):
     return HttpResponse('You can')
 
 #Show Transaction Start
-
 @login_required
 def showTransaction(request):
     allList = Transaction.objects.all()
@@ -95,6 +99,7 @@ def showTransaction(request):
 
 #Show Transaction End
 
+    
 @login_required
 def uploadTransaction(request):
     f = UploadFileForm()
@@ -131,12 +136,37 @@ def upload_csv(request):
                                                                 amount=each[2])
 
                 if not created:
+                    c.add()
                     c.save()
             except:
                 pass
 
 
     return render(request, 'watsons:showTransaction')
+
+
+# @login_required
+# def readFile(request):
+
+#     save_path = os.path.join(settings.MEDIA_ROOT, 'uploads', request.FILES['file'])
+#     path = default_storage.save(save_path, request.FILES['file'])
+#     return default_storage.path(path)
+# def handle_uploaded_file(f):
+#     with open('data/name.csv', 'wb+') as destination:
+#         for chunk in f.chunks():
+#             destination.write(chunk)
+
+# def readFile(request):
+#     if request.method == 'POST':
+#         form = UploadFileForm(request.POST, request.FILES)
+#         handle_uploaded_file(request.FILES['file'])
+#         return redirect('/')
+#     else:
+#         form = UploadFileForm()
+#     return HttpResponse('ijij')
+
+
+
 
 
 #RFM Model start
@@ -192,7 +222,11 @@ def customer_avg(customer_query):
     for c in customer_query:
         total += c.transaction_total
         count += 1
-    average = total / count
+
+    if count == 0:
+        average = 0
+    else:
+        average = total / count
 
     return average
 
@@ -364,6 +398,167 @@ def RFM_model_group(request):
     return render(request, 'watsons/ShowRFMGroup.html', {"new_group_list": new_group_list})
 
 
+def get_promotion(request):
+    if request.method == 'POST':
+        form = PromotionForm(request.POST)
+        if form.is_valid():
+            p, created = Promotion.objects.get_or_create(**form.cleaned_data)
+            p.save()
+            return redirect('watsons:edit_BreakEven')
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = PromotionForm()
+
+
+    customer_list = Customer.objects.all()
+    promotion = Promotion.objects.order_by('-id')[0]
+
+    customer_transaction_list = []
+
+    promotion_delta = promotion.end_time - promotion.start_time
+
+    for cm in customer_list:
+        transaction_queryset = cm.transaction_set.order_by('delta_date')
+        transaction_promotion = []
+        for t in transaction_queryset:
+            if t.time - promotion.start_time < promotion_delta:
+                transaction_promotion.append(t)
+            else:
+                continue
+
+        customer_transaction_list.append({"Customer": cm, "Transaction_Query": transaction_queryset, \
+                                        "Transaction_promotion": transaction_promotion})
+    
+    
+    for customer_t in customer_transaction_list:
+        customer_t["recent_num"] = create_recent_number(customer_t["Transaction_Query"])
+        customer_t["frequency_num"] = create_frequency_number(customer_t["Transaction_Query"])
+        customer_t["amount_num"] = create_amount_number(customer_t["Transaction_Query"])
+        customer_t["promotion_average_spending"] = customer_avg(customer_t["Transaction_promotion"])
+        customer_t["RFM_num"] = customer_t["recent_num"]*100+customer_t["frequency_num"]*10+customer_t["amount_num"]
+
+    RFM_list = []
+    customer_group_list = []
+    for t in customer_transaction_list:
+        rfm_num = t["RFM_num"]
+        temp = {}
+        if rfm_num not in RFM_list:
+            RFM_list.append(rfm_num)
+            temp["RFM_num"] = rfm_num
+            temp["TOTAL"] = t["promotion_average_spending"]
+            temp["count"] = 1
+            customer_group_list.append(temp)
+        else:
+            for i in customer_group_list:
+                if i["RFM_num"] == rfm_num:
+                    i["count"] += 1
+                    i["TOTAL"] += t["promotion_average_spending"]
+                else:
+                    continue
+
+    avg_cost = promotion.amount/len(customer_list)
+    
+    for item in customer_group_list:
+        item["AVG"] = item["TOTAL"] / i["count"] 
+        item["BreakEven_Index"] = (item["AVG"] - avg_cost)*100 / avg_cost
+
+
+
+    new_group_list = sorted(customer_group_list, key = lambda e:(e.__getitem__('RFM_num')))
+
+    return render(request, 'watsons/EditBreakEven.html', {'form': form, "new_group_list": new_group_list})
+
+def BreakEven(request):
+    customer_list = Customer.objects.all()
+    promotion = Promotion.objects.order_by('-id')[0]
+
+    customer_transaction_list = []
+
+    promotion_delta = promotion.end_time - promotion.start_time
+
+    for cm in customer_list:
+        transaction_queryset = cm.transaction_set.order_by('delta_date')
+        transaction_promotion = []
+        for t in transaction_queryset:
+            if t.time - promotion.start_time < promotion_delta:
+                transaction_promotion.append(t)
+            else:
+                continue
+
+        customer_transaction_list.append({"Customer": cm, "Transaction_Query": transaction_queryset, \
+                                        "Transaction_promotion": transaction_promotion})
+    
+    
+    for customer_t in customer_transaction_list:
+        customer_t["recent_num"] = create_recent_number(customer_t["Transaction_Query"])
+        customer_t["frequency_num"] = create_frequency_number(customer_t["Transaction_Query"])
+        customer_t["amount_num"] = create_amount_number(customer_t["Transaction_Query"])
+        customer_t["promotion_average_spending"] = customer_avg(customer_t["Transaction_promotion"])
+        customer_t["RFM_num"] = customer_t["recent_num"]*100+customer_t["frequency_num"]*10+customer_t["amount_num"]
+
+    RFM_list = []
+    customer_group_list = []
+    for t in customer_transaction_list:
+        rfm_num = t["RFM_num"]
+        temp = {}
+        if rfm_num not in RFM_list:
+            RFM_list.append(rfm_num)
+            temp["RFM_num"] = rfm_num
+            temp["TOTAL"] = t["promotion_average_spending"]
+            temp["count"] = 1
+            customer_group_list.append(temp)
+        else:
+            for i in customer_group_list:
+                if i["RFM_num"] == rfm_num:
+                    i["count"] += 1
+                    i["TOTAL"] += t["promotion_average_spending"]
+                else:
+                    continue
+
+    avg_cost = promotion.amount/len(customer_list)
+    
+    for item in customer_group_list:
+        item["AVG"] = item["TOTAL"] / i["count"] 
+        item["BreakEven_Index"] = (item["AVG"] - avg_cost)*100 / avg_cost
+
+
+
+    new_group_list = sorted(customer_group_list, key = lambda e:(e.__getitem__('RFM_num')))
+    
+    return render(request, 'watsons/BreakEvenList.html', {"new_group_list": new_group_list})
+
+
+def Association_Rule(request):
+    customer_list = Customer.objects.all()
+
+    customer_transaction_list = []
+    Association_list = []
+    
+    for cm in customer_list:
+        double_time = cm.transaction_set.values('time').annotate(time_count = Count('time'))
+        for d in double_time:
+            if d['time_count'] > 1:
+                product = cm.transaction_set.filter('time' == d['time'])
+                if product not in Association_list:
+                    Association_list.append({'Product': product, 'Count' : 1})
+                else:
+                    for p in Association_list:
+                        if p['Product'] == product:
+                            p['Count'] += 1
+                        else:
+                            continue
+            else:
+                continue
+
+        customer_transaction_list.append({'Customer': cm, 'time': double_time})
+
+    
+    return render(request, 'watsons/Association.html', {"Association_list": Association_list, })
+
+
+
+
 #RFM Model End 
 
 #Product Index Start
@@ -385,6 +580,36 @@ def listall(request):
 
 #Product list End
 
+#Product listone Start
+
+def listone(request):
+    try:
+        unit = Product.objects.get(product_id="100010001") #讀取第一筆資料
+    except:
+        errormessage = "(讀取錯誤!)"
+    return render(request,'watsons/listone.html',locals())
+
+#Product listone End
+
+#Product listless Start
+
+def listless(request):
+    try:
+
+        unit1 = Product.objects.get(id = 5) #讀取前兩筆資料
+        unit2 = Product.objects.get(id = 5)
+        unit3 = Product.objects.get(id = 5)
+        unit4 = Product.objects.get(id = 5)
+        unit5 = Product.objects.get(id = 5)
+
+        product_dict = [unit1, unit2, unit3, unit4, unit5]
+          #讀取前兩筆資料
+        
+    except:
+        errormessage = "(讀取錯誤!)"
+    return render(request,'watsons/listless.html',{'product_list':product_dict})
+
+#Product listless End
 
 #Marketing part Start
 
@@ -414,8 +639,9 @@ def servive(request): #存活率
 
 def total_rate(request): #個別錢包佔有率
     poc = Pocket_other.objects.order_by('customer').all()
-    poc2 = Pocket_other.objects.order_by('customer')
-    cal_rate(poc, poc2)
+    dict1 = cal_poc(poc)
+    poc2 = poc
+    cal_rate(poc2)
     context = {'poc2': poc2}
     return render(request, 'watsons/total_rate.html', context)
 
@@ -445,34 +671,23 @@ def cal_poc(poc):  #call function  from  rate,total_rate
 
 
  # call function  from  total_rate
-def cal_rate(poc1,poc2):
-    cost = Customer.objects.all()
-    for c in cost:
-        tran = Transaction.objects.filter(customer_id=c.id)   # 找到顧客交易資料
-        p = poc2.get(customer_id=c.id)
-        p1 = poc1.get(customer_id=c.id)                                         # poc1 為此顧客的錢包大小
-        p.total_Cosmetic = 0
-        p.total_Snacks = 0
-        p.total_Care = 0
-        for t in tran:                                                             # 找到的交易資訊 依據品類統計
-            pro = Product.objects.get(product_name=t.product)
-            if pro.category == 'Cosmetic':
-                p.total_Cosmetic = p.total_Cosmetic+t.total
-            elif pro.category == 'Snacks':
-                p.total_Snacks = p.total_Snacks + t.total
-            elif pro.category == 'Care Product':
-                p.total_Care = p.total_Care + t.total
-        p.total_Cosmetic = p.total_Cosmetic/p1.total_Cosmetic                     # 算出顧客在各品類的錢包佔有率
-        p.total_Snacks = p.total_Snacks/p1.total_Snacks
-        p.total_Care = p.total_Care/p1.total_Care
+def cal_rate(poc2):
+    for p in poc2:
+        try:
+            p.total_Cosmetic = round(80 / p.total_Cosmetic,2)
+        except ZeroDivisionError:
+            p.total_Cosmetic = 0
+        try:
+            p.total_Snacks = round(440 / p.total_Snacks,2)
+        except ZeroDivisionError:
+            p.total_Snacks = 0
+        try:
+            p.total_Care = round(80 / p.total_Care,2)
+        except ZeroDivisionError:
+            p.total_Care = 0
 
-def home(request): #首頁
-
-    return render(request, 'watsons/home.html', locals())
+    return poc2
 #Marketing Part End
-
-
-
 
 
 

@@ -1,11 +1,10 @@
-
 {% extends 'watsons/Base.html' %}
 {% load static from staticfiles %}
 {% block content %}
 
 
 
-<h2>Product List</h2>
+<h2>Search Result</h2>
 
 <div class="table-responsive">
     <table class="table table-striped">
@@ -20,17 +19,19 @@
         </tr>
       </thead>
       <tbody>
-        
-        {% for product in products %}    
+        {% for unit in product_list %}
+
         <tr>
-            <td>{{product.product_id}}  </td>
-            <td>{{product.product_name}}  </td>
-            <td>{{product.category}}  </td>
-            <td>{{product.brand}}  </td>
-            <td>{{product.quantity}}  </td>
-            <td>{{product.quantity_safe}}  </td>
-        </tr>
-        {% endfor %}
+          <td>{{unit.product_id}}  </td>
+          <td>{{unit.product_name}}  </td>
+          <td>{{unit.category}}  </td>
+          <td>{{unit.brand}}  </td>
+          <td>{{unit.quantity}}  </td>
+          <td>{{unit.quantity_safe}}  </td>
+      </tr>
+        {% endfor %}  
+        
+        
     
         
       </tbody>

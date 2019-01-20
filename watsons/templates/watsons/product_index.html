@@ -6,13 +6,14 @@
 <h2>產品庫存查詢</h2>
 
 <div style="border:5px rgb(0, 0, 0) solid;">
-    查詢單筆產品<br>
+    <h4>查詢單筆產品</h4><br>
     Product_ID: <input type="text" name="Product_ID" value="請輸入產品編號">
-    <input type="submit"type ="button" onclick="javascript:location.href='http://127.0.0.1:8000/watsons/listall'" value="查詢">
+    <input type="submit"type ="button" onclick="javascript:location.href='http://127.0.0.1:8000/watsons/listone'" value="查詢">
+    <p></p>
 </div>
 <br>
 <div style="border:5px #FFAC55 solid;">
-    條件查詢<br>
+    <h4>條件查詢</h4><br>
     <select name="category">
         <option value="All">All</option>
         <option value="COSMETIC">COSMETIC</option>
@@ -31,7 +32,8 @@
         <option value="is more than">大於安全庫存量</option>
         <option value="is less than">小於安全庫存量</option>
     </select>
-    <input type="submit" value="查詢">
+    <input type="submit"type ="button" onclick="javascript:location.href='http://127.0.0.1:8000/watsons/listall'" value="查詢">
+    <P></P>
 </div>
 <br>
 
