@@ -1,0 +1,38 @@
+{% extends 'watsons/Base.html' %}
+{% load static from staticfiles %}
+{% block content %}
+  
+
+<h2>產品庫存查詢</h2>
+
+<div style="border:5px rgb(0, 0, 0) solid;">
+    查詢單筆產品<br>
+    Product_ID: <input type="text" name="Product_ID" value="請輸入產品編號">
+    <input type="submit"type ="button" onclick="javascript:location.href='http://127.0.0.1:8000/watsons/listall'" value="查詢">
+</div>
+<br>
+<div style="border:5px #FFAC55 solid;">
+    條件查詢<br>
+    <select name="category">
+        <option value="All">All</option>
+        <option value="COSMETIC">COSMETIC</option>
+        <option value="SNACK">SNACK</option>
+        <option value="Care Product">Care Product</option>
+        <option value="Facial Cleanser">Facial Cleanser</option>
+        <option value="Makeup Remover">Makeup Remover</option>
+        <option value="Lotion">Lotion</option>
+        <option value="Mask">Mask</option>
+        <option value="Sunscreen lotion">Sunscreen lotion</option>
+        <option value="Mouthwash">Mouthwash</option>
+        <option value="Toothpaste">Toothpaste</option>
+    </select>
+    <select name="quantity_safe">
+        <option value="All">All</option>
+        <option value="is more than">大於安全庫存量</option>
+        <option value="is less than">小於安全庫存量</option>
+    </select>
+    <input type="submit" value="查詢">
+</div>
+<br>
+
+{% endblock %}

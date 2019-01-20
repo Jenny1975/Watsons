@@ -1,0 +1,97 @@
+{% extends 'watsons/Base.html' %}
+{% load static from staticfiles %}
+{% block content %}
+
+
+
+<h2>Transaction List</h2>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+           <th>顧客</th>
+           <th>商品名稱</th>
+           <th>個人購買數量</th>
+           <th>單價</th>
+           <th>總計</th>
+           <th>訂單成立時間</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        {% for i in allList %}
+
+          <tr>
+             <td>{{ i.customer.customer_name }}</td>
+             <td>{{ i.product.product_name }}</td>
+             <td>{{ i.amount }}</td>   
+             <td>{{ i.product.price }}</td>
+             <td>100</td>
+             <td>{{ i.time }}</td>
+             
+
+             
+            
+          </tr>
+          {% endfor %}
+    
+        
+      </tbody>
+    </table>
+    <br/><br/>
+    <h3>Year Total</h3>
+    <table class="table table-striped">
+            <thead>
+              <tr>
+                 <th>商品名稱</th>
+                 <th>商品數量</th>
+                 <th>單價</th>
+                 <th>總計</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              {% for i in yList %}
+      
+                <tr>
+                      {% for v in i.0 %}
+                   <td>{{ v }}</td>    
+                   {% endfor %}
+                  
+                </tr>
+                {% endfor %}
+          
+              
+            </tbody>
+          </table>
+{% for m in mList %}
+          <br/><br/>
+    <h3>{{ m }} Total</h3>
+          <table class="table table-striped">
+                <thead>
+                  <tr>
+                     <th>商品名稱</th>
+                     <th>商品數量</th>
+                     <th>單價</th>
+                     <th>總計</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  
+                  {% for i in m %}
+          
+                    <tr>
+                          {% for v in i.0 %}
+                       <td>{{ v }}</td>    
+                       {% endfor %}
+                      
+                    </tr>
+                    {% endfor %}
+              
+                  
+                </tbody>
+              </table>
+              {% endfor %}
+</div>
+{% endblock %}

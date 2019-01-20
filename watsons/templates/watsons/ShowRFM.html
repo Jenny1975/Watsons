@@ -1,0 +1,43 @@
+{% extends 'watsons/Base.html' %}
+{% load static from staticfiles %}
+{% block content %}
+
+
+
+<h2>Transaction List</h2>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+           <th>顧客</th>
+           <th>最近購買日分數</th>
+           <th>頻率分數</th>
+           <th>最近購買金額分數</th>
+           <th>平均消費金額</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        {% for i in customer_transaction_list %}
+
+          <tr>
+             <td>{{ i.Customer.customer_name }}</td>
+             <td>{{ i.recent_num }}</td>
+             <td>{{ i.frequency_num }}</td>   
+             <td>{{ i.amount_num }}</td>
+             <td>{{ i.average_spending }}</td>
+             
+
+             
+            
+          </tr>
+          {% endfor %}
+    
+        
+      </tbody>
+    </table>
+
+
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>RMF Chart</title>
+</head>
+<body>
+  <div id="container1"></div>
+  <div id="container2"></div>
+  <div id="container3"></div>
+  <script src="https://code.highcharts.com/highcharts.src.js"></script>
+  <script>
+    Highcharts.chart('container1', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Average Spending by Recent'
+        },
+        xAxis: {
+            categories: [
+                {% for entry in dataset_recent %}'{{ entry.recent }}'{% if not forloop.last %}, {% endif %}{% endfor %}
+            ]
+        },
+        series: [{
+            name: 'Average Spending',
+            data: [
+                {% for entry in dataset_recent %}{{ entry.recent_average_amount }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            ],
+            color: 'green'
+        }]
+    });
+
+    Highcharts.chart('container2', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Average Spending by Frequency'
+        },
+        xAxis: {
+            categories: [
+                {% for item in dataset_frequency %}'{{ item.frequency }}'{% if not forloop.last %}, {% endif %}{% endfor %}
+            ]
+        },
+        series: [{
+            name: 'Average Spending',
+            data: [
+                {% for item in dataset_frequency %}{{ item.frequency_average_amount }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            ],
+            color: 'red'
+        }]
+    });
+
+    Highcharts.chart('container3', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Average Spending by Last Amount'
+        },
+        xAxis: {
+            categories: [
+                {% for entry in dataset_amount%}'{{ entry.amount }}'{% if not forloop.last %}, {% endif %}{% endfor %}
+            ]
+        },
+        series: [{
+            name: 'Average Spending',
+            data: [
+                {% for entry in dataset_amount %}{{ entry.amount_average_amount }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            ],
+            color: 'blue'
+        }]
+    });
+  </script>
+</body>
+</html>

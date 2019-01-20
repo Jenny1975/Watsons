@@ -1,0 +1,10 @@
+
+{% if latest_transaction_list %}
+    <ul>
+    {% for transaction in latest_transaction_list %}
+        <li>{{ transaction.time }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No transaction are available.</p>
+{% endif %}

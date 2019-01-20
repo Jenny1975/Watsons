@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <h2>顧客存活率</h2>
+</head>
+<br>
+<table border="1" cellpadding="0" cellspacing="0">
+        <th>Date</th>
+        <th>留存率</th>
+        <th>存活率</th>
+        <th>預期活躍顧客數</th>
+        <th>活躍顧客期間數</th>
+
+{% for customer in ser %}
+        <tr>
+            <td>{{customer.Date}}  </td>
+            <td>{{customer.retentention_rate}}  </td>
+            <td>{{customer.servive_rate}}  </td>
+            <td>{{customer.customer_num}}  </td>
+             <td>{{customer.respected_customer_num}}  </td>
+        </tr>
+        {% endfor %}
+    </table>
+              <br>平均存續期間<br>
+                  {{ period }}
+
+</body>
+</html>
