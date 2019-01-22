@@ -71,7 +71,7 @@
             <ul class="nav nav-sidebar">
               <li><a href="{% url 'watsons:Product Index' %}">產品庫存分析</a></li>
               <li><a href="{% url 'watsons:showTransaction' %}">訂單查詢</a></li>
-              {%if not isManager%}
+              {%if isManager == 0%}
                 <li><a href="{% url 'watsons:upload_csv' %}">匯入資料</a></li>
               {%endif%}
             </ul>
@@ -83,7 +83,7 @@
             <ul class="nav nav-sidebar">  顧客活動指標
               <li><a href="{% url 'watsons:RFM' %}">RFM報表</a></li>
               <li><a href="{% url 'watsons:BreakEven' %}">損益平衡值</a></li>
-              {%if not isManager%}
+              {%if isManager == 0%}
                 <li><a href="{% url 'watsons:edit_BreakEven' %}">損益平衡值期間新增</a></li>
               {%endif%}
             </ul>

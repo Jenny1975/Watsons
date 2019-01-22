@@ -6,7 +6,7 @@ from django.template import loader
 from django.urls import reverse
 from django.db import models
 from decimal import Decimal
-from .models import Transaction, Product, Customer, Pocket_other, Servive, Promotion
+from .models import Transaction, Product, Customer, Pocket_other, Servive, Promotion, Staff
 from .forms import PromotionForm, UploadFileForm
 from django.db.models import Avg, Sum, Count
 import matplotlib.pyplot as plt
@@ -26,9 +26,8 @@ NOW =  datetime.datetime.now()
 
 @login_required
 def index(request):
-    latest_transaction_list = Transaction.objects.order_by('-time')[:5]
-    context = {'latest_transaction_list': latest_transaction_list}
-    return render(request, 'watsons/Base.html', context)
+    
+    return render(request, 'watsons/Base.html', {'isManager':Staff.isManager})
              
 def create(request):
     with open('Pfile.csv') as pf:
@@ -94,7 +93,7 @@ def showTransaction(request):
     m10 = Transaction.objects.filter(time__year=2018, time__month=10).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
     m11 = Transaction.objects.filter(time__year=2018, time__month=11).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
     m12 = Transaction.objects.filter(time__year=2018, time__month=12).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
-    context = {'allList': allList, 'yList':yList, 'mList': {1: m1, 2: m2, 3: m3, 4: m4, 5: m5, 6: m6, 7: m7, 8: m8, 9: m9, 10: m10, 11: m11, 12: m12}}
+    context = {'allList': allList, 'yList':yList, 'mList': {1: m1, 2: m2, 3: m3, 4: m4, 5: m5, 6: m6, 7: m7, 8: m8, 9: m9, 10: m10, 11: m11, 12: m12}, 'isManager': staff.isManager}
     return render(request, 'watsons/ShowTransaction.html', context)
 
 #Show Transaction End
@@ -103,7 +102,7 @@ def showTransaction(request):
 @login_required
 def uploadTransaction(request):
     f = UploadFileForm()
-    return render(request, 'watsons/UploadFile.html', {'f': f})
+    return render(request, 'watsons/UploadFile.html', {'f': f, 'isManager':Staff.isManager})
 
 
 def upload_csv(request):
@@ -142,7 +141,7 @@ def upload_csv(request):
                 pass
 
 
-    return render(request, 'watsons:showTransaction')
+    return render(request, 'watsons:showTransaction', {'isManager':Staff.isManager})
 
 
 # @login_required
@@ -213,7 +212,7 @@ def RFM_model(request):
 
     return render(request, 'watsons/detail.html', {'dataset_recent': dataset_recent,
                                                 'dataset_frequency': dataset_frequency, 
-                                                'dataset_amount' : dataset_amount})
+                                                'dataset_amount' : dataset_amount, 'isManager':Staff.isManager})
 
 
 def customer_avg(customer_query):
@@ -349,7 +348,7 @@ def RFM_model_list(request):
     new_list = sorted(customer_transaction_list, key = lambda e:(e.__getitem__('recent_num'), e.__getitem__('frequency_num'), \
                                                                     e.__getitem__('amount_num')))
     
-    return render(request, 'watsons/ShowRFM.html', {"customer_transaction_list": new_list})
+    return render(request, 'watsons/ShowRFM.html', {"customer_transaction_list": new_list, 'isManager':Staff.isManager})
 
 
 def RFM_model_group(request):
@@ -395,7 +394,7 @@ def RFM_model_group(request):
 
     new_group_list = sorted(customer_group_list, key = lambda e:(e.__getitem__('RFM_num')))
     
-    return render(request, 'watsons/ShowRFMGroup.html', {"new_group_list": new_group_list})
+    return render(request, 'watsons/ShowRFMGroup.html', {"new_group_list": new_group_list, 'isManager':Staff.isManager})
 
 
 def get_promotion(request):
@@ -467,7 +466,7 @@ def get_promotion(request):
 
     new_group_list = sorted(customer_group_list, key = lambda e:(e.__getitem__('RFM_num')))
 
-    return render(request, 'watsons/EditBreakEven.html', {'form': form, "new_group_list": new_group_list})
+    return render(request, 'watsons/EditBreakEven.html', {'form': form, "new_group_list": new_group_list, 'isManager':Staff.isManager})
 
 def BreakEven(request):
     customer_list = Customer.objects.all()
@@ -487,7 +486,7 @@ def BreakEven(request):
                 continue
 
         customer_transaction_list.append({"Customer": cm, "Transaction_Query": transaction_queryset, \
-                                        "Transaction_promotion": transaction_promotion})
+                                        "Transaction_promotion": transaction_promotion, 'isManager':Staff.isManager})
     
     
     for customer_t in customer_transaction_list:
@@ -526,7 +525,7 @@ def BreakEven(request):
 
     new_group_list = sorted(customer_group_list, key = lambda e:(e.__getitem__('RFM_num')))
     
-    return render(request, 'watsons/BreakEvenList.html', {"new_group_list": new_group_list})
+    return render(request, 'watsons/BreakEvenList.html', {"new_group_list": new_group_list, 'isManager':Staff.isManager})
 
 
 def Association_Rule(request):
@@ -554,7 +553,7 @@ def Association_Rule(request):
         customer_transaction_list.append({'Customer': cm, 'time': double_time})
 
     
-    return render(request, 'watsons/Association.html', {"Association_list": Association_list, })
+    return render(request, 'watsons/Association.html', {"Association_list": Association_list, 'isManager':Staff.isManager})
 
 
 
@@ -607,7 +606,7 @@ def listless(request):
         
     except:
         errormessage = "(讀取錯誤!)"
-    return render(request,'watsons/listless.html',{'product_list':product_dict})
+    return render(request,'watsons/listless.html',{'product_list':product_dict, 'isManager':Staff.isManager})
 
 #Product listless End
 
@@ -651,7 +650,7 @@ def rate(request):  #錢包大小
     dict1 = cal_poc(poc)
     context = {'poc': poc}
     context.update(dict1)
-    return render(request, 'watsons/rate.html', context)
+    return render(request, 'watsons/rate.html', {'context': context, 'isManager':Staff.isManager})
 
 
 def cal_poc(poc):  #call function  from  rate,total_rate
@@ -665,7 +664,7 @@ def cal_poc(poc):  #call function  from  rate,total_rate
         cosmetic = cosmetic + p.total_Cosmetic
         snacks = snacks + p.total_Snacks
         care = care + p.total_Care
-    dict1 = {'cosmetic': cosmetic, 'snacks': snacks, 'care': care}
+    dict1 = {'cosmetic': cosmetic, 'snacks': snacks, 'care': care, 'isManager':Staff.isManager}
     return dict1
 
 
