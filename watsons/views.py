@@ -26,8 +26,9 @@ NOW =  datetime.datetime.now()
 
 @login_required
 def index(request):
+    staff = get_object_or_404(Staff, user=request.user)
     
-    return render(request, 'watsons/Base.html', {'isManager':Staff.isManager})
+    return render(request, 'watsons/Base.html', {'isManager':staff.isManager})
              
 def create(request):
     with open('Pfile.csv') as pf:
@@ -79,6 +80,7 @@ def create(request):
 #Show Transaction Start
 @login_required
 def showTransaction(request):
+    staff = get_object_or_404(Staff, user=request.user)
     allList = Transaction.objects.all()
     yList = Transaction.objects.filter(time__year=2018).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
     m1 = Transaction.objects.filter(time__year=2018, time__month=1).values("product_id").annotate(sales=Sum("amount")).values("product", "sales")
@@ -101,11 +103,13 @@ def showTransaction(request):
     
 @login_required
 def uploadTransaction(request):
+    staff = get_object_or_404(Staff, user=request.user)
     f = UploadFileForm()
-    return render(request, 'watsons/UploadFile.html', {'f': f, 'isManager':Staff.isManager})
+    return render(request, 'watsons/UploadFile.html', {'f': f, 'isManager':staff.isManager})
 
 
 def upload_csv(request):
+    staff = get_object_or_404(Staff, user=request.user)
     data = {}
     if request.method == 'GET':
         return render(request, "watsons/UploadFile.html", data)
@@ -126,13 +130,18 @@ def upload_csv(request):
                 elif csv_file.name.startswith('C'):
                     c, created = Customer.objects.get_or_create(customer_name=each[0],
                                                                 gender=each[1])
+                elif each == ['']:
+                    break
                 else:
-                    d = random.randint(1,364)
-                    thisTime = NOW + datetime.timedelta(days=d)
-                    c, created = Transaction.objects.get_or_create(customer_id=each[0],
-                                                                product_id=each[1],
-                                                                time=thisTime,
-                                                                amount=each[2])
+                    y = request.POST.get('year')
+                    m = request.POST.get('month')
+                    d = request.POST.get('day')
+                    thisTime = datetime.date(int(y), int(m), int(d))
+                    amount = each[2][:-1]
+                    c, created = Transaction.objects.get_or_create(customer_id=int(each[0]),
+                                                            product_id=int(each[1]),
+                                                            time=thisTime,
+                                                            amount=int(amount))
 
                 if not created:
                     c.add()
@@ -141,7 +150,7 @@ def upload_csv(request):
                 pass
 
 
-    return render(request, 'watsons:showTransaction', {'isManager':Staff.isManager})
+    return render(request, 'watsons/ShowTransaction.html', {'isManager':staff.isManager})
 
 
 # @login_required
@@ -170,6 +179,7 @@ def upload_csv(request):
 
 #RFM Model start
 def RFM_model(request):
+    staff = get_object_or_404(Staff, user=request.user)
     customer_list = Customer.objects.all()
 
     customer_transaction_list = []
@@ -212,7 +222,7 @@ def RFM_model(request):
 
     return render(request, 'watsons/detail.html', {'dataset_recent': dataset_recent,
                                                 'dataset_frequency': dataset_frequency, 
-                                                'dataset_amount' : dataset_amount, 'isManager':Staff.isManager})
+                                                'dataset_amount' : dataset_amount, 'isManager':staff.isManager})
 
 
 def customer_avg(customer_query):
@@ -330,6 +340,7 @@ def create_amount_number(list):
 
 
 def RFM_model_list(request):
+    staff = get_object_or_404(Staff, user=request.user)
     customer_list = Customer.objects.all()
 
     customer_transaction_list = []
@@ -348,10 +359,11 @@ def RFM_model_list(request):
     new_list = sorted(customer_transaction_list, key = lambda e:(e.__getitem__('recent_num'), e.__getitem__('frequency_num'), \
                                                                     e.__getitem__('amount_num')))
     
-    return render(request, 'watsons/ShowRFM.html', {"customer_transaction_list": new_list, 'isManager':Staff.isManager})
+    return render(request, 'watsons/ShowRFM.html', {"customer_transaction_list": new_list, 'isManager':staff.isManager})
 
 
 def RFM_model_group(request):
+    staff = get_object_or_404(Staff, user=request.user)
     customer_list = Customer.objects.all()
 
     customer_transaction_list = []
@@ -394,10 +406,11 @@ def RFM_model_group(request):
 
     new_group_list = sorted(customer_group_list, key = lambda e:(e.__getitem__('RFM_num')))
     
-    return render(request, 'watsons/ShowRFMGroup.html', {"new_group_list": new_group_list, 'isManager':Staff.isManager})
+    return render(request, 'watsons/ShowRFMGroup.html', {"new_group_list": new_group_list, 'isManager':staff.isManager})
 
 
 def get_promotion(request):
+    staff = get_object_or_404(Staff, user=request.user)
     if request.method == 'POST':
         form = PromotionForm(request.POST)
         if form.is_valid():
@@ -466,9 +479,10 @@ def get_promotion(request):
 
     new_group_list = sorted(customer_group_list, key = lambda e:(e.__getitem__('RFM_num')))
 
-    return render(request, 'watsons/EditBreakEven.html', {'form': form, "new_group_list": new_group_list, 'isManager':Staff.isManager})
+    return render(request, 'watsons/EditBreakEven.html', {'form': form, "new_group_list": new_group_list, 'isManager':staff.isManager})
 
 def BreakEven(request):
+    staff = get_object_or_404(Staff, user=request.user)
     customer_list = Customer.objects.all()
     promotion = Promotion.objects.order_by('-id')[0]
 
@@ -486,7 +500,7 @@ def BreakEven(request):
                 continue
 
         customer_transaction_list.append({"Customer": cm, "Transaction_Query": transaction_queryset, \
-                                        "Transaction_promotion": transaction_promotion, 'isManager':Staff.isManager})
+                                        "Transaction_promotion": transaction_promotion, 'isManager':staff.isManager})
     
     
     for customer_t in customer_transaction_list:
@@ -525,10 +539,11 @@ def BreakEven(request):
 
     new_group_list = sorted(customer_group_list, key = lambda e:(e.__getitem__('RFM_num')))
     
-    return render(request, 'watsons/BreakEvenList.html', {"new_group_list": new_group_list, 'isManager':Staff.isManager})
+    return render(request, 'watsons/BreakEvenList.html', {"new_group_list": new_group_list, 'isManager':staff.isManager})
 
 
 def Association_Rule(request):
+    staff = get_object_or_404(Staff, user=request.user)
     customer_list = Customer.objects.all()
 
     customer_transaction_list = []
@@ -553,7 +568,7 @@ def Association_Rule(request):
         customer_transaction_list.append({'Customer': cm, 'time': double_time})
 
     
-    return render(request, 'watsons/Association.html', {"Association_list": Association_list, 'isManager':Staff.isManager})
+    return render(request, 'watsons/Association.html', {"Association_list": Association_list, 'isManager':staff.isManager})
 
 
 
@@ -563,6 +578,7 @@ def Association_Rule(request):
 #Product Index Start
 
 def product_index(request):
+    staff = get_object_or_404(Staff, user=request.user)
  
     return render(request,'watsons/product_index.html',locals())
 
@@ -572,6 +588,7 @@ def product_index(request):
 #Product list Start
 
 def listall(request):
+    staff = get_object_or_404(Staff, user=request.user)
  
     products = Product.objects.all().order_by('-id') #依據id欄位遞減排序顯示所有資料
     return render(request,'watsons/listall.html',locals())
@@ -582,6 +599,7 @@ def listall(request):
 #Product listone Start
 
 def listone(request):
+    staff = get_object_or_404(Staff, user=request.user)
     try:
         unit = Product.objects.get(product_id="100010001") #讀取第一筆資料
     except:
@@ -593,6 +611,7 @@ def listone(request):
 #Product listless Start
 
 def listless(request):
+    staff = get_object_or_404(Staff, user=request.user)
     try:
 
         unit1 = Product.objects.get(id = 5) #讀取前兩筆資料
@@ -606,13 +625,14 @@ def listless(request):
         
     except:
         errormessage = "(讀取錯誤!)"
-    return render(request,'watsons/listless.html',{'product_list':product_dict, 'isManager':Staff.isManager})
+    return render(request,'watsons/listless.html',{'product_list':product_dict, 'isManager':staff.isManager})
 
 #Product listless End
 
 #Marketing part Start
 
 def servive(request): #存活率
+    staff = get_object_or_404(Staff, user=request.user)
     ser = Servive.objects.order_by('Date')
     r = 1
     n = 100
@@ -637,6 +657,7 @@ def servive(request): #存活率
 
 
 def total_rate(request): #個別錢包佔有率
+    staff = get_object_or_404(Staff, user=request.user)
     poc = Pocket_other.objects.order_by('customer').all()
     dict1 = cal_poc(poc)
     poc2 = poc
@@ -646,14 +667,16 @@ def total_rate(request): #個別錢包佔有率
 
 
 def rate(request):  #錢包大小
+    staff = get_object_or_404(Staff, user=request.user)
     poc = Pocket_other.objects.order_by('customer').all()
     dict1 = cal_poc(poc)
     context = {'poc': poc}
     context.update(dict1)
-    return render(request, 'watsons/rate.html', {'context': context, 'isManager':Staff.isManager})
+    return render(request, 'watsons/rate.html', {'context': context, 'isManager':staff.isManager})
 
 
 def cal_poc(poc):  #call function  from  rate,total_rate
+
     cosmetic = 0
     snacks = 0
     care = 0
@@ -664,7 +687,7 @@ def cal_poc(poc):  #call function  from  rate,total_rate
         cosmetic = cosmetic + p.total_Cosmetic
         snacks = snacks + p.total_Snacks
         care = care + p.total_Care
-    dict1 = {'cosmetic': cosmetic, 'snacks': snacks, 'care': care, 'isManager':Staff.isManager}
+    dict1 = {'cosmetic': cosmetic, 'snacks': snacks, 'care': care, 'isManager':staff.isManager}
     return dict1
 
 

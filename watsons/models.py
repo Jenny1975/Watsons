@@ -90,7 +90,7 @@ class Transaction(models.Model):
         delta = date_now - self.time
         return delta.days
 
-    def save(self):
+    def save(self, *args, **kwargs):
         if self.transaction_total is None:
             self.transaction_total = Transaction.create_total(self)
         # if self.transaction_id is None:
