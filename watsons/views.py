@@ -178,6 +178,7 @@ def upload_csv(request):
 
 
 #RFM Model start
+@login_required
 def RFM_model(request):
     staff = get_object_or_404(Staff, user=request.user)
     customer_list = Customer.objects.all()
@@ -338,7 +339,7 @@ def create_amount_number(list):
     return amount_num
 
 
-
+@login_required
 def RFM_model_list(request):
     staff = get_object_or_404(Staff, user=request.user)
     customer_list = Customer.objects.all()
@@ -361,7 +362,7 @@ def RFM_model_list(request):
     
     return render(request, 'watsons/ShowRFM.html', {"customer_transaction_list": new_list, 'isManager':staff.isManager})
 
-
+@login_required
 def RFM_model_group(request):
     staff = get_object_or_404(Staff, user=request.user)
     customer_list = Customer.objects.all()
@@ -408,7 +409,7 @@ def RFM_model_group(request):
     
     return render(request, 'watsons/ShowRFMGroup.html', {"new_group_list": new_group_list, 'isManager':staff.isManager})
 
-
+@login_required
 def get_promotion(request):
     staff = get_object_or_404(Staff, user=request.user)
     if request.method == 'POST':
@@ -479,8 +480,9 @@ def get_promotion(request):
 
     new_group_list = sorted(customer_group_list, key = lambda e:(e.__getitem__('RFM_num')))
 
-    return render(request, 'watsons/EditBreakEven.html', {'form': form, "new_group_list": new_group_list, 'isManager':staff.isManager})
+    return render(request, 'watsons/EditBreakEven.html', {'form': form, "new_group_list": new_group_list, 'isManager':Staff.isManager})
 
+@login_required
 def BreakEven(request):
     staff = get_object_or_404(Staff, user=request.user)
     customer_list = Customer.objects.all()
@@ -539,7 +541,7 @@ def BreakEven(request):
 
     new_group_list = sorted(customer_group_list, key = lambda e:(e.__getitem__('RFM_num')))
     
-    return render(request, 'watsons/BreakEvenList.html', {"new_group_list": new_group_list, 'isManager':staff.isManager})
+    return render(request, 'watsons/BreakEvenList.html', {"new_group_list": new_group_list, 'isManager':Staff.isManager})
 
 
 def Association_Rule(request):
@@ -610,6 +612,7 @@ def listone(request):
 
 #Product listless Start
 
+@login_required
 def listless(request):
     staff = get_object_or_404(Staff, user=request.user)
     try:
@@ -625,12 +628,13 @@ def listless(request):
         
     except:
         errormessage = "(讀取錯誤!)"
-    return render(request,'watsons/listless.html',{'product_list':product_dict, 'isManager':staff.isManager})
+    return render(request,'watsons/listless.html',{'product_list':product_dict, 'isManager':Staff.isManager})
 
 #Product listless End
 
 #Marketing part Start
 
+@login_required
 def servive(request): #存活率
     staff = get_object_or_404(Staff, user=request.user)
     ser = Servive.objects.order_by('Date')
@@ -652,27 +656,27 @@ def servive(request): #存活率
     plt.xlabel('servive rate')
     plt.show()
     period = period/100
-    context = {'ser': ser, 'period': period, }
+    context = {'ser': ser, 'period': period, 'isManager':Staff.isManager }
     return render(request, 'watsons/servive.html', context)
 
-
+@login_required
 def total_rate(request): #個別錢包佔有率
     staff = get_object_or_404(Staff, user=request.user)
     poc = Pocket_other.objects.order_by('customer').all()
     dict1 = cal_poc(poc)
     poc2 = poc
     cal_rate(poc2)
-    context = {'poc2': poc2}
+    context = {'poc2': poc2, 'isManager':staff.isManager}
     return render(request, 'watsons/total_rate.html', context)
 
-
+@login_required
 def rate(request):  #錢包大小
     staff = get_object_or_404(Staff, user=request.user)
     poc = Pocket_other.objects.order_by('customer').all()
     dict1 = cal_poc(poc)
-    context = {'poc': poc}
+    context = {'poc': poc, 'isManager':Staff.isManager}
     context.update(dict1)
-    return render(request, 'watsons/rate.html', {'context': context, 'isManager':staff.isManager})
+    return render(request, 'watsons/rate.html', context)
 
 
 def cal_poc(poc):  #call function  from  rate,total_rate
@@ -687,7 +691,7 @@ def cal_poc(poc):  #call function  from  rate,total_rate
         cosmetic = cosmetic + p.total_Cosmetic
         snacks = snacks + p.total_Snacks
         care = care + p.total_Care
-    dict1 = {'cosmetic': cosmetic, 'snacks': snacks, 'care': care, 'isManager':staff.isManager}
+    dict1 = {'cosmetic': cosmetic, 'snacks': snacks, 'care': care}
     return dict1
 
 
